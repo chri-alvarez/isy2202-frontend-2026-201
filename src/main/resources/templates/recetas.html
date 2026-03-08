@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recetas de Alimentos</title>
+    <link rel="stylesheet" href="/recetas.css">
+</head>
+<body>
+    <!-- Header con navegación -->
+    <header>
+        <nav>
+            <h1>🍎 Recetas Saludables</h1>
+            <a href="/" th:href="@{/login}">Iniciar Sesión</a>
+        </nav>
+    </header>
+
+    <!-- Banner de Frutería -->
+    <div class="banner-frutera">
+        <h2>🥬 La Frutería del Bienestar 🥕</h2>
+        <p>Descubre recetas deliciosas hechas con frutas y verduras frescas</p>
+        <p class="destacado">✓ Ingredientes 100% Naturales | ✓ Recetas Saludables | ✓ Fácil de Preparar</p>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="container">
+        <!-- Introducción -->
+        <section class="introduccion">
+            <h2>Bienvenido a Nuestro Recetario</h2>
+            <p>
+                En nuestro recetario encontrarás una amplia variedad de recetas saludables utilizando los mejores 
+                productos de la frutería. Todas nuestras recetas están diseñadas para ser nutritivas, deliciosas 
+                y fáciles de preparar en tu cocina.
+            </p>
+            <p>
+                Ya sea que busques recetas rápidas para el desayuno, opciones saludables para el almuerzo o 
+                postres naturales, aquí encontrarás inspiración para llevar una vida más sana.
+            </p>
+        </section>
+
+        <!-- Grid de Recetas -->
+        <section class="recetas-grid">
+            <!-- Receta 1: Ensalada de Frutas Tropicales -->
+            <article class="receta-card">
+                <div class="receta-header">
+                    <h3>Ensalada de Frutas Tropicales</h3>
+                </div>
+                <div class="receta-body">
+                    <div class="receta-info">
+                        <span><strong>⏱️</strong> 15 min</span>
+                        <span><strong>👥</strong> 4 porciones</span>
+                    </div>
+                    <div class="ingredientes">
+                        <h4>Ingredientes:</h4>
+                        <ul>
+                            <li>1 piña picada</li>
+                            <li>2 mangos cortados en cubos</li>
+                            <li>1 papaya de tamaño mediano</li>
+                            <li>200g de fresas</li>
+                            <li>Jugo de 1 limón</li>
+                            <li>Menta fresca</li>
+                        </ul>
+                    </div>
+                    <div class="instrucciones">
+                        <h4>Preparación:</h4>
+                        <p>Mezcla todas las frutas en un bowl grande. Exprime el jugo de limón sobre la mezcla. 
+                        Añade hojas de menta fresca. Refrigera durante 30 minutos antes de servir.</p>
+                    </div>
+                    <span class="dificultad facil">Fácil</span>
+                </div>
+            </article>
+
+            <!-- Receta 2: Smoothie Verde Energético -->
+            <article class="receta-card">
+                <div class="receta-header">
+                    <h3>Smoothie Verde Energético</h3>
+                </div>
+                <div class="receta-body">
+                    <div class="receta-info">
+                        <span><strong>⏱️</strong> 10 min</span>
+                        <span><strong>👥</strong> 2 porciones</span>
+                    </div>
+                    <div class="ingredientes">
+                        <h4>Ingredientes:</h4>
+                        <ul>
+                            <li>2 tazas de espinaca fresca</li>
+                            <li>1 plátano maduro</li>
+                            <li>1 manzana verde</li>
+                            <li>1 taza de leche de almendra</li>
+                            <li>1/2 taza de yogur natural</li>
+                            <li>1 cucharada de miel</li>
+                        </ul>
+                    </div>
+                    <div class="instrucciones">
+                        <h4>Preparación:</h4>
+                        <p>Coloca la espinaca, plátano, manzana, leche y yogur en la licuadora. Licúa hasta 
+                        obtener una mezcla homogénea. Endulza con miel al gusto. Sirve inmediatamente.</p>
+                    </div>
+                    <span class="dificultad facil">Fácil</span>
+                </div>
+            </article>
+
+            <!-- Receta 3: Sopa de Verduras Colorida -->
+            <article class="receta-card">
+                <div class="receta-header">
+                    <h3>Sopa de Verduras Colorida</h3>
+                </div>
+                <div class="receta-body">
+                    <div class="receta-info">
+                        <span><strong>⏱️</strong> 30 min</span>
+                        <span><strong>👥</strong> 6 porciones</span>
+                    </div>
+                    <div class="ingredientes">
+                        <h4>Ingredientes:</h4>
+                        <ul>
+                            <li>2 zanahorias cortadas</li>
+                            <li>3 papas pequeñas</li>
+                            <li>1 brócoli picado</li>
+                            <li>1 cebolla mediana</li>
+                            <li>2 tomates</li>
+                            <li>1 litro de caldo de verduras</li>
+                        </ul>
+                    </div>
+                    <div class="instrucciones">
+                        <h4>Preparación:</h4>
+                        <p>Calienta el caldo en una olla. Añade la cebolla, zanahorias y papas. Cocina durante 
+                        15 minutos. Agrega el brócoli y tomates. Cocina 10 minutos más. Sazona al gusto.</p>
+                    </div>
+                    <span class="dificultad media">Medio</span>
+                </div>
+            </article>
+
+            <!-- Receta 4: Tarta de Frutos Rojos -->
+            <article class="receta-card">
+                <div class="receta-header">
+                    <h3>Tarta de Frutos Rojos</h3>
+                </div>
+                <div class="receta-body">
+                    <div class="receta-info">
+                        <span><strong>⏱️</strong> 45 min</span>
+                        <span><strong>👥</strong> 8 porciones</span>
+                    </div>
+                    <div class="ingredientes">
+                        <h4>Ingredientes:</h4>
+                        <ul>
+                            <li>200g de fresas</li>
+                            <li>150g de arándanos</li>
+                            <li>150g de frambuesas</li>
+                            <li>1 base de tarta lista</li>
+                            <li>200ml de crema</li>
+                            <li>2 cucharadas de miel</li>
+                        </ul>
+                    </div>
+                    <div class="instrucciones">
+                        <h4>Preparación:</h4>
+                        <p>Prepara la crema batida con miel. Coloca sobre la base de tarta. Distribuye los frutos 
+                        rojos de manera decorativa. Refrigera por 2 horas antes de servir.</p>
+                    </div>
+                    <span class="dificultad media">Medio</span>
+                </div>
+            </article>
+
+            <!-- Receta 5: Ensalada de Remolacha y Queso -->
+            <article class="receta-card">
+                <div class="receta-header">
+                    <h3>Ensalada de Remolacha y Queso</h3>
+                </div>
+                <div class="receta-body">
+                    <div class="receta-info">
+                        <span><strong>⏱️</strong> 20 min</span>
+                        <span><strong>👥</strong> 4 porciones</span>
+                    </div>
+                    <div class="ingredientes">
+                        <h4>Ingredientes:</h4>
+                        <ul>
+                            <li>3 remolachas medianas</li>
+                            <li>Lechuga mixta</li>
+                            <li>200g de queso de cabra</li>
+                            <li>100g de nueces picadas</li>
+                            <li>Aceite de oliva</li>
+                            <li>Vinagre balsámico</li>
+                        </ul>
+                    </div>
+                    <div class="instrucciones">
+                        <h4>Preparación:</h4>
+                        <p>Cocina las remolachas hasta que estén tiernas. Corta en cubos. Mezcla con la lechuga. 
+                        Añade queso de cabra y nueces. Aliña con aceite y vinagre balsámico.</p>
+                    </div>
+                    <span class="dificultad media">Medio</span>
+                </div>
+            </article>
+
+            <!-- Receta 6: Pasta Integral con Vegetales -->
+            <article class="receta-card">
+                <div class="receta-header">
+                    <h3>Pasta Integral con Vegetales</h3>
+                </div>
+                <div class="receta-body">
+                    <div class="receta-info">
+                        <span><strong>⏱️</strong> 25 min</span>
+                        <span><strong>👥</strong> 4 porciones</span>
+                    </div>
+                    <div class="ingredientes">
+                        <h4>Ingredientes:</h4>
+                        <ul>
+                            <li>400g de pasta integral</li>
+                            <li>2 calabacines</li>
+                            <li>1 pimiento rojo</li>
+                            <li>200g de champiñones</li>
+                            <li>3 dientes de ajo</li>
+                            <li>Tomates cherry</li>
+                        </ul>
+                    </div>
+                    <div class="instrucciones">
+                        <h4>Preparación:</h4>
+                        <p>Cocina la pasta según las indicaciones. Saltea los vegetales en aceite de oliva con ajo. 
+                        Mezcla la pasta cocida con los vegetales. Sirve caliente con queso parmesano rallado.</p>
+                    </div>
+                    <span class="dificultad facil">Fácil</span>
+                </div>
+            </article>
+        </section>
+
+        <!-- Sección de Beneficios -->
+        <section class="beneficios">
+            <h2>Beneficios de Comer Frutas y Verduras</h2>
+            <div class="beneficios-list">
+                <div class="beneficio-item">
+                    <h4>💪 Fortalece el Cuerpo</h4>
+                    <p>Las frutas y verduras proporcionan vitaminas y minerales esenciales para fortalecer 
+                    el sistema inmunológico y mejorar la salud general.</p>
+                </div>
+                <div class="beneficio-item">
+                    <h4>🧠 Mejora la Cognición</h4>
+                    <p>Los antioxidantes presentes en las verduras de hoja verde mejoran la memoria y 
+                    la concentración.</p>
+                </div>
+                <div class="beneficio-item">
+                    <h4>❤️ Cuidado del Corazón</h4>
+                    <p>Las frutas y verduras reducen el colesterol y la presión arterial, promoviendo 
+                    la salud cardiovascular.</p>
+                </div>
+                <div class="beneficio-item">
+                    <h4>⚖️ Control de Peso</h4>
+                    <p>Altos en fibra y bajos en calorías, las frutas y verduras ayudan a mantener 
+                    un peso saludable.</p>
+                </div>
+                <div class="beneficio-item">
+                    <h4>✨ Piel más Saludable</h4>
+                    <p>Los nutrientes naturales promueven una piel radiante y saludable desde el interior.</p>
+                </div>
+                <div class="beneficio-item">
+                    <h4>🔋 Aumenta la Energía</h4>
+                    <p>Las vitaminas B y los carbohidratos naturales proporcionan energía sostenida durante el día.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 La Frutería del Bienestar - Recetas Saludables</p>
+        <p>Todos nuestros ingredientes son 100% naturales y frescos</p>
+        <p><a href="/" th:href="@{/}" style="color: #3498db; text-decoration: none;">Volver al inicio</a></p>
+    </footer>
+</body>
+</html>
