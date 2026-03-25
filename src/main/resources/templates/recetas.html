@@ -12,8 +12,169 @@
         <nav>
             <h1>🍎 Recetas Saludables</h1>
             <a href="/" th:href="@{/login}">Iniciar Sesión</a>
+            <button id="btnProfile" style="margin-left: 20px;">Cargar datos de usuario</button>
         </nav>
     </header>
+
+    <section style="padding: 16px;">
+        <button id="btnCheckToken">Ver token guardado</button>
+        <pre id="tokenInfo" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+    </section>
+
+    <!-- Variables Globales para JS -->
+    <script>const backendUrl = '/api/recipes';</script>
+
+    <script>
+        const tokenInfo = document.getElementById('tokenInfo');
+
+        document.getElementById('btnCheckToken').addEventListener('click', () => {
+            const token = localStorage.getItem('jwtToken');
+            tokenInfo.textContent = token ? `JWT almacenado:\n${token}` : 'No hay token almacenado';
+        });
+
+        document.getElementById('btnProfile').addEventListener('click', async () => {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                tokenInfo.textContent = 'No estás autenticado. Inicia sesión primero.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/profile', {
+                    headers: {
+                        Authorization: token
+                    }
+                });
+                const text = await response.text();
+                if (!response.ok) {
+                    tokenInfo.textContent = `Error ${response.status}: ${text}`;
+                    return;
+                }
+                tokenInfo.textContent = `Perfil devuelto por backend:\n${text}`;
+            } catch (e) {
+                tokenInfo.textContent = 'Error al obtener perfil: ' + e.message;
+            }
+        });
+
+        // Funciones para Recetas
+        async function loadRecipes() {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return; // No intentar cargar si no hay sesión
+
+            try {
+                const response = await fetch(backendUrl, {
+                    headers: { 'Authorization': token }
+                });
+                if (response.ok) {
+                    const recipes = await response.json();
+                    renderRecipes(recipes);
+                } else {
+                    console.error('Error cargando recetas:', await response.text());
+                }
+            } catch (e) {
+                console.error('Error fetch recetas:', e);
+            }
+        }
+
+        function renderRecipes(recipes) {
+            const grid = document.getElementById('recetasGrid');
+            grid.innerHTML = '';
+
+            if (!recipes || recipes.length === 0) {
+                grid.innerHTML = '<p>No hay recetas disponibles.</p>';
+                return;
+            }
+
+            recipes.forEach(r => {
+                const card = document.createElement('article');
+                card.className = 'receta-card';
+                
+                // Construir lista de ingredientes HTML
+                const ingredientsHtml = r.ingredients 
+                    ? r.ingredients.map(i => `<li>${i}</li>`).join('') 
+                    : '';
+                
+                // Manejar imagen si existe (opcional)
+                const imageHtml = (r.photos && r.photos.length > 0) 
+                    ? `<img src="${r.photos[0]}" alt="${r.name}" style="width:100%; height:200px; object-fit:cover;">` 
+                    : '';
+
+                card.innerHTML = `
+                    ${imageHtml}
+                    <div class="receta-header">
+                        <h3>${r.name}</h3>
+                    </div>
+                    <div class="receta-body">
+                        <div class="receta-info">
+                            <span><strong>⏱️</strong> ${r.cookTimeMinutes} min</span>
+                            <span><strong>🌍</strong> ${r.countryOfOrigin}</span>
+                        </div>
+                        <div class="ingredientes">
+                            <h4>Ingredientes:</h4>
+                            <ul>${ingredientsHtml}</ul>
+                        </div>
+                        <div class="instrucciones">
+                            <h4>Preparación:</h4>
+                            <p>${r.instructions}</p>
+                        </div>
+                        <span class="dificultad ${r.difficulty ? r.difficulty.toLowerCase() : 'media'}">
+                            ${r.difficulty}
+                        </span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function createRecipe(event) {
+            event.preventDefault();
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                alert('Debes iniciar sesión para crear recetas');
+                return;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // Construir objeto JSON
+            const recipeData = {
+                name: formData.get('name'),
+                cuisineType: formData.get('cuisineType'),
+                countryOfOrigin: formData.get('countryOfOrigin'),
+                difficulty: formData.get('difficulty'),
+                cookTimeMinutes: parseInt(formData.get('cookTimeMinutes')),
+                instructions: formData.get('instructions'),
+                // Convertir texto separado por comas a array
+                ingredients: formData.get('ingredients').split(',').map(s => s.trim()).filter(s => s),
+                photos: formData.get('photos').split(',').map(s => s.trim()).filter(s => s)
+            };
+
+            try {
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(recipeData)
+                });
+
+                if (response.ok) {
+                    alert('Receta creada exitosamente');
+                    form.reset();
+                    loadRecipes(); // Recargar la lista
+                } else {
+                    alert('Error al crear receta: ' + await response.text());
+                }
+            } catch (e) {
+                alert('Error de conexión: ' + e.message);
+            }
+        }
+
+        // Cargar recetas al iniciar si hay token
+        window.addEventListener('DOMContentLoaded', loadRecipes);
+    </script>
 
     <!-- Banner de Frutería -->
     <div class="banner-frutera">
@@ -32,193 +193,43 @@
                 productos de la frutería. Todas nuestras recetas están diseñadas para ser nutritivas, deliciosas 
                 y fáciles de preparar en tu cocina.
             </p>
-            <p>
-                Ya sea que busques recetas rápidas para el desayuno, opciones saludables para el almuerzo o 
-                postres naturales, aquí encontrarás inspiración para llevar una vida más sana.
-            </p>
+        </section>
+
+        <!-- Sección de Creación de Receta -->
+        <section class="introduccion" style="background-color: #f8f9fa;">
+            <h3>✨ Crear Nueva Receta</h3>
+            <form id="formCreateRecipe" onsubmit="createRecipe(event)" style="display: grid; gap: 10px; max-width: 600px; margin-top: 15px;">
+                <input type="text" name="name" placeholder="Nombre de la receta" required style="padding: 8px;">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="text" name="cuisineType" placeholder="Tipo de cocina (Ej. Latina)" required style="padding: 8px;">
+                    <input type="text" name="countryOfOrigin" placeholder="País de origen" required style="padding: 8px;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <select name="difficulty" required style="padding: 8px;">
+                        <option value="Facil">Fácil</option>
+                        <option value="Media">Media</option>
+                        <option value="Dificil">Difícil</option>
+                    </select>
+                    <input type="number" name="cookTimeMinutes" placeholder="Tiempo (minutos)" required style="padding: 8px;">
+                </div>
+
+                <textarea name="instructions" placeholder="Instrucciones de preparación..." required style="padding: 8px; height: 80px;"></textarea>
+                
+                <input type="text" name="ingredients" placeholder="Ingredientes (separados por coma)" required style="padding: 8px;">
+                <input type="text" name="photos" placeholder="URL de foto (opcional)" style="padding: 8px;">
+
+                <button type="submit" style="padding: 10px; background-color: #27ae60; color: white; border: none; cursor: pointer; border-radius: 4px;">
+                    Guardar Receta
+                </button>
+            </form>
         </section>
 
         <!-- Grid de Recetas -->
-        <section class="recetas-grid">
-            <!-- Receta 1: Ensalada de Frutas Tropicales -->
-            <article class="receta-card">
-                <div class="receta-header">
-                    <h3>Ensalada de Frutas Tropicales</h3>
-                </div>
-                <div class="receta-body">
-                    <div class="receta-info">
-                        <span><strong>⏱️</strong> 15 min</span>
-                        <span><strong>👥</strong> 4 porciones</span>
-                    </div>
-                    <div class="ingredientes">
-                        <h4>Ingredientes:</h4>
-                        <ul>
-                            <li>1 piña picada</li>
-                            <li>2 mangos cortados en cubos</li>
-                            <li>1 papaya de tamaño mediano</li>
-                            <li>200g de fresas</li>
-                            <li>Jugo de 1 limón</li>
-                            <li>Menta fresca</li>
-                        </ul>
-                    </div>
-                    <div class="instrucciones">
-                        <h4>Preparación:</h4>
-                        <p>Mezcla todas las frutas en un bowl grande. Exprime el jugo de limón sobre la mezcla. 
-                        Añade hojas de menta fresca. Refrigera durante 30 minutos antes de servir.</p>
-                    </div>
-                    <span class="dificultad facil">Fácil</span>
-                </div>
-            </article>
-
-            <!-- Receta 2: Smoothie Verde Energético -->
-            <article class="receta-card">
-                <div class="receta-header">
-                    <h3>Smoothie Verde Energético</h3>
-                </div>
-                <div class="receta-body">
-                    <div class="receta-info">
-                        <span><strong>⏱️</strong> 10 min</span>
-                        <span><strong>👥</strong> 2 porciones</span>
-                    </div>
-                    <div class="ingredientes">
-                        <h4>Ingredientes:</h4>
-                        <ul>
-                            <li>2 tazas de espinaca fresca</li>
-                            <li>1 plátano maduro</li>
-                            <li>1 manzana verde</li>
-                            <li>1 taza de leche de almendra</li>
-                            <li>1/2 taza de yogur natural</li>
-                            <li>1 cucharada de miel</li>
-                        </ul>
-                    </div>
-                    <div class="instrucciones">
-                        <h4>Preparación:</h4>
-                        <p>Coloca la espinaca, plátano, manzana, leche y yogur en la licuadora. Licúa hasta 
-                        obtener una mezcla homogénea. Endulza con miel al gusto. Sirve inmediatamente.</p>
-                    </div>
-                    <span class="dificultad facil">Fácil</span>
-                </div>
-            </article>
-
-            <!-- Receta 3: Sopa de Verduras Colorida -->
-            <article class="receta-card">
-                <div class="receta-header">
-                    <h3>Sopa de Verduras Colorida</h3>
-                </div>
-                <div class="receta-body">
-                    <div class="receta-info">
-                        <span><strong>⏱️</strong> 30 min</span>
-                        <span><strong>👥</strong> 6 porciones</span>
-                    </div>
-                    <div class="ingredientes">
-                        <h4>Ingredientes:</h4>
-                        <ul>
-                            <li>2 zanahorias cortadas</li>
-                            <li>3 papas pequeñas</li>
-                            <li>1 brócoli picado</li>
-                            <li>1 cebolla mediana</li>
-                            <li>2 tomates</li>
-                            <li>1 litro de caldo de verduras</li>
-                        </ul>
-                    </div>
-                    <div class="instrucciones">
-                        <h4>Preparación:</h4>
-                        <p>Calienta el caldo en una olla. Añade la cebolla, zanahorias y papas. Cocina durante 
-                        15 minutos. Agrega el brócoli y tomates. Cocina 10 minutos más. Sazona al gusto.</p>
-                    </div>
-                    <span class="dificultad media">Medio</span>
-                </div>
-            </article>
-
-            <!-- Receta 4: Tarta de Frutos Rojos -->
-            <article class="receta-card">
-                <div class="receta-header">
-                    <h3>Tarta de Frutos Rojos</h3>
-                </div>
-                <div class="receta-body">
-                    <div class="receta-info">
-                        <span><strong>⏱️</strong> 45 min</span>
-                        <span><strong>👥</strong> 8 porciones</span>
-                    </div>
-                    <div class="ingredientes">
-                        <h4>Ingredientes:</h4>
-                        <ul>
-                            <li>200g de fresas</li>
-                            <li>150g de arándanos</li>
-                            <li>150g de frambuesas</li>
-                            <li>1 base de tarta lista</li>
-                            <li>200ml de crema</li>
-                            <li>2 cucharadas de miel</li>
-                        </ul>
-                    </div>
-                    <div class="instrucciones">
-                        <h4>Preparación:</h4>
-                        <p>Prepara la crema batida con miel. Coloca sobre la base de tarta. Distribuye los frutos 
-                        rojos de manera decorativa. Refrigera por 2 horas antes de servir.</p>
-                    </div>
-                    <span class="dificultad media">Medio</span>
-                </div>
-            </article>
-
-            <!-- Receta 5: Ensalada de Remolacha y Queso -->
-            <article class="receta-card">
-                <div class="receta-header">
-                    <h3>Ensalada de Remolacha y Queso</h3>
-                </div>
-                <div class="receta-body">
-                    <div class="receta-info">
-                        <span><strong>⏱️</strong> 20 min</span>
-                        <span><strong>👥</strong> 4 porciones</span>
-                    </div>
-                    <div class="ingredientes">
-                        <h4>Ingredientes:</h4>
-                        <ul>
-                            <li>3 remolachas medianas</li>
-                            <li>Lechuga mixta</li>
-                            <li>200g de queso de cabra</li>
-                            <li>100g de nueces picadas</li>
-                            <li>Aceite de oliva</li>
-                            <li>Vinagre balsámico</li>
-                        </ul>
-                    </div>
-                    <div class="instrucciones">
-                        <h4>Preparación:</h4>
-                        <p>Cocina las remolachas hasta que estén tiernas. Corta en cubos. Mezcla con la lechuga. 
-                        Añade queso de cabra y nueces. Aliña con aceite y vinagre balsámico.</p>
-                    </div>
-                    <span class="dificultad media">Medio</span>
-                </div>
-            </article>
-
-            <!-- Receta 6: Pasta Integral con Vegetales -->
-            <article class="receta-card">
-                <div class="receta-header">
-                    <h3>Pasta Integral con Vegetales</h3>
-                </div>
-                <div class="receta-body">
-                    <div class="receta-info">
-                        <span><strong>⏱️</strong> 25 min</span>
-                        <span><strong>👥</strong> 4 porciones</span>
-                    </div>
-                    <div class="ingredientes">
-                        <h4>Ingredientes:</h4>
-                        <ul>
-                            <li>400g de pasta integral</li>
-                            <li>2 calabacines</li>
-                            <li>1 pimiento rojo</li>
-                            <li>200g de champiñones</li>
-                            <li>3 dientes de ajo</li>
-                            <li>Tomates cherry</li>
-                        </ul>
-                    </div>
-                    <div class="instrucciones">
-                        <h4>Preparación:</h4>
-                        <p>Cocina la pasta según las indicaciones. Saltea los vegetales en aceite de oliva con ajo. 
-                        Mezcla la pasta cocida con los vegetales. Sirve caliente con queso parmesano rallado.</p>
-                    </div>
-                    <span class="dificultad facil">Fácil</span>
-                </div>
-            </article>
+        <section class="recetas-grid" id="recetasGrid">
+            <!-- El contenido será cargado dinámicamente por JS -->
+            <p style="grid-column: 1/-1; text-align: center;">Cargando recetas...</p>
         </section>
 
         <!-- Sección de Beneficios -->

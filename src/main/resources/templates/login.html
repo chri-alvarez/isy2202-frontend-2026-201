@@ -5,17 +5,70 @@
         <link rel="stylesheet" type="text/css" href="/login.css">
     </head>
     <body>
-        <div th:if="${param.error}">
-            Invalid username and password.
-        </div>
-        <div th:if="${param.logout}">
-            You have been logged out.
-        </div>
-        <form th:action="@{/login}" method="post">
+        <div id="loginError" style="color: red; margin-bottom: 10px;"></div>
+        <form id="loginForm">
             <div><label> User Name : <input type="text" name="username"/> </label></div>
             <div><label> Password: <input type="password" name="password"/> </label></div>
             <div><input type="submit" value="Sign In"/></div>
         </form>
+
+        <script>
+            document.getElementById('loginForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const username = event.target.username.value.trim();
+                const password = event.target.password.value.trim();
+                const errorBox = document.getElementById('loginError');
+                errorBox.textContent = '';
+
+                if (!username || !password) {
+                    errorBox.textContent = 'Debes ingresar usuario y contraseña';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    let data;
+                    const bodyText = await response.text();
+                    console.log('Respuesta del backend:', bodyText);
+                    if (bodyText) {
+                        try {
+                            data = JSON.parse(bodyText);
+                        } catch (parseError) {
+                            data = { message: bodyText };
+                        }
+                    } else {
+                        data = {};
+                    }
+
+                    if (!response.ok) {
+                        const message = data.message || data.error || bodyText || 'Error de autenticación';
+                        errorBox.textContent = message;
+                        return;
+                    }
+
+                    const rawToken = data.token || data.accessToken || data.jwt || data.bearer || data.authToken || bodyText;
+                    if (!rawToken) {
+                        errorBox.textContent = 'No se recibió token JWT del backend';
+                        return;
+                    }
+
+                    const bearerToken = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
+                    localStorage.setItem('jwtToken', bearerToken);
+                    localStorage.setItem('username', username);
+
+                    window.location.href = '/home';
+                } catch (err) {
+                    errorBox.textContent = err.message || 'Error al conectar con el backend';
+                }
+            });
+        </script>
     </body>
 </html>
 
