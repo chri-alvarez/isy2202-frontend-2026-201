@@ -11,15 +11,18 @@
     <header>
         <nav>
             <h1>🍎 Recetas Saludables</h1>
-            <a href="/" th:href="@{/login}">Iniciar Sesión</a>
-            <button id="btnProfile" style="margin-left: 20px;">Cargar datos de usuario</button>
+            <div id="navGuest" style="display:none; gap:10px;">
+                <a th:href="@{/login}" href="/login">Iniciar Sesión</a>
+                <a th:href="@{/register}" href="/register" style="background-color:#27ae60;">Registrarse</a>
+            </div>
+            <div id="navAuth" style="display:none; gap:10px; align-items:center;">
+                <button id="btnProfile" style="color:#fff; background-color:#2980b9; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Mi perfil</button>
+                <button id="btnLogout" style="color:#fff; background-color:#e74c3c; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Cerrar sesión</button>
+            </div>
         </nav>
     </header>
 
-    <section style="padding: 16px;">
-        <button id="btnCheckToken">Ver token guardado</button>
-        <pre id="tokenInfo" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
-    </section>
+    <pre id="tokenInfo" style="padding:0 20px; white-space:pre-wrap; word-wrap:break-word;"></pre>
 
     <!-- Variables Globales para JS -->
     <script>const backendUrl = '/api/recipes';</script>
@@ -27,24 +30,19 @@
     <script>
         const tokenInfo = document.getElementById('tokenInfo');
 
-        document.getElementById('btnCheckToken').addEventListener('click', () => {
-            const token = localStorage.getItem('jwtToken');
-            tokenInfo.textContent = token ? `JWT almacenado:\n${token}` : 'No hay token almacenado';
+        document.getElementById('btnLogout').addEventListener('click', async () => {
+            try {
+                await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+                window.location.href = '/login';
+            } catch (e) {
+                tokenInfo.textContent = 'Error al cerrar sesión: ' + e.message;
+            }
         });
 
-        document.getElementById('btnProfile').addEventListener('click', async () => {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) {
-                tokenInfo.textContent = 'No estás autenticado. Inicia sesión primero.';
-                return;
-            }
 
+        document.getElementById('btnProfile').addEventListener('click', async () => {
             try {
-                const response = await fetch('/api/profile', {
-                    headers: {
-                        Authorization: token
-                    }
-                });
+                const response = await fetch('/api/profile', { credentials: 'same-origin' });
                 const text = await response.text();
                 if (!response.ok) {
                     tokenInfo.textContent = `Error ${response.status}: ${text}`;
@@ -58,13 +56,8 @@
 
         // Funciones para Recetas
         async function loadRecipes() {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return; // No intentar cargar si no hay sesión
-
             try {
-                const response = await fetch(backendUrl, {
-                    headers: { 'Authorization': token }
-                });
+                const response = await fetch(backendUrl, { credentials: 'same-origin' });
                 if (response.ok) {
                     const recipes = await response.json();
                     renderRecipes(recipes);
@@ -128,12 +121,6 @@
 
         async function createRecipe(event) {
             event.preventDefault();
-            const token = localStorage.getItem('jwtToken');
-            if (!token) {
-                alert('Debes iniciar sesión para crear recetas');
-                return;
-            }
-
             const form = event.target;
             const formData = new FormData(form);
 
@@ -154,9 +141,9 @@
                 const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: {
-                        'Authorization': token,
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(recipeData)
                 });
 
@@ -164,6 +151,9 @@
                     alert('Receta creada exitosamente');
                     form.reset();
                     loadRecipes(); // Recargar la lista
+                } else if (response.status === 401) {
+                    alert('Sesión expirada. Por favor inicia sesión nuevamente.');
+                    window.location.href = '/login';
                 } else {
                     alert('Error al crear receta: ' + await response.text());
                 }
@@ -172,8 +162,24 @@
             }
         }
 
-        // Cargar recetas al iniciar si hay token
-        window.addEventListener('DOMContentLoaded', loadRecipes);
+        // Detectar sesión al cargar la página y configurar la vista según el estado
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/session', { credentials: 'same-origin' });
+                if (res.ok) {
+                    document.getElementById('navAuth').style.display = 'flex';
+                    document.getElementById('sectionCreateRecipe').style.display = '';
+                    loadRecipes();
+                } else {
+                    document.getElementById('navGuest').style.display = 'flex';
+                    document.getElementById('recetasGrid').innerHTML =
+                        '<p style="grid-column:1/-1;text-align:center;padding:40px;font-size:18px;">'
+                        + '🔒 <a href="/login">Inicia sesión</a> o <a href="/register">regístrate</a> para explorar nuestras recetas.</p>';
+                }
+            } catch (_) {
+                document.getElementById('navGuest').style.display = 'flex';
+            }
+        });
     </script>
 
     <!-- Banner de Frutería -->
@@ -195,8 +201,8 @@
             </p>
         </section>
 
-        <!-- Sección de Creación de Receta -->
-        <section class="introduccion" style="background-color: #f8f9fa;">
+        <!-- Sección de Creación de Receta (solo visible para usuarios autenticados) -->
+        <section id="sectionCreateRecipe" class="introduccion" style="background-color: #f8f9fa; display:none;">
             <h3>✨ Crear Nueva Receta</h3>
             <form id="formCreateRecipe" onsubmit="createRecipe(event)" style="display: grid; gap: 10px; max-width: 600px; margin-top: 15px;">
                 <input type="text" name="name" placeholder="Nombre de la receta" required style="padding: 8px;">
